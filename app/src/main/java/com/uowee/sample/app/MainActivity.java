@@ -7,6 +7,8 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.MenuItem;
 import android.widget.TextView;
 
+import com.uowee.charon.Charon;
+
 public class MainActivity extends AppCompatActivity {
 
     private TextView mTextMessage;
@@ -39,6 +41,8 @@ public class MainActivity extends AppCompatActivity {
         mTextMessage = (TextView) findViewById(R.id.message);
         BottomNavigationView navigation = (BottomNavigationView) findViewById(R.id.navigation);
         navigation.setOnNavigationItemSelectedListener(mOnNavigationItemSelectedListener);
+
+
     }
 
 }

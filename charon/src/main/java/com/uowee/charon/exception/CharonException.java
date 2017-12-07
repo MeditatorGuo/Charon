@@ -15,11 +15,11 @@ import retrofit2.HttpException;
 /**
  * Created by GuoWee on 2017/10/26 21:02
  */
-public class ApiException extends Exception {
+public class CharonException extends Exception {
     private final int code;
     private String message;
 
-    public ApiException(Throwable throwable, int code) {
+    public CharonException(Throwable throwable, int code) {
         super(throwable);
         this.code = code;
         this.message = throwable.getMessage();
@@ -33,7 +33,7 @@ public class ApiException extends Exception {
         return message;
     }
 
-    public ApiException setMessage(String message) {
+    public CharonException setMessage(String message) {
         this.message = message;
         return this;
     }
@@ -42,11 +42,11 @@ public class ApiException extends Exception {
         return message + "(code:" + code + ")";
     }
 
-    public static ApiException handleException(Throwable e) {
-        ApiException ex;
+    public static CharonException handleException(Throwable e) {
+        CharonException ex;
         if (e instanceof HttpException) {
             HttpException httpException = (HttpException) e;
-            ex = new ApiException(e, ApiCode.Request.HTTP_ERROR);
+            ex = new CharonException(e, ApiCode.Request.HTTP_ERROR);
             switch (httpException.code()) {
                 case ApiCode.Http.UNAUTHORIZED:
                 case ApiCode.Http.FORBIDDEN:
@@ -64,23 +64,23 @@ public class ApiException extends Exception {
             }
             return ex;
         } else if (e instanceof JsonParseException || e instanceof JSONException || e instanceof ParseException) {
-            ex = new ApiException(e, ApiCode.Request.PARSE_ERROR);
+            ex = new CharonException(e, ApiCode.Request.PARSE_ERROR);
             ex.message = "PARSE_ERROR";
             return ex;
         } else if (e instanceof ConnectException) {
-            ex = new ApiException(e, ApiCode.Request.NETWORK_ERROR);
+            ex = new CharonException(e, ApiCode.Request.NETWORK_ERROR);
             ex.message = "NETWORK_ERROR";
             return ex;
         } else if (e instanceof javax.net.ssl.SSLHandshakeException) {
-            ex = new ApiException(e, ApiCode.Request.SSL_ERROR);
+            ex = new CharonException(e, ApiCode.Request.SSL_ERROR);
             ex.message = "SSL_ERROR";
             return ex;
         } else if (e instanceof SocketTimeoutException) {
-            ex = new ApiException(e, ApiCode.Request.TIMEOUT_ERROR);
+            ex = new CharonException(e, ApiCode.Request.TIMEOUT_ERROR);
             ex.message = "TIMEOUT_ERROR";
             return ex;
         }else {
-            ex = new ApiException(e, ApiCode.Request.UNKNOWN);
+            ex = new CharonException(e, ApiCode.Request.UNKNOWN);
             ex.message = "UNKNOWN";
             return ex;
         }

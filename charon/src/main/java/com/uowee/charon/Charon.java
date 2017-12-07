@@ -1,11 +1,12 @@
 package com.uowee.charon;
 
 import android.content.Context;
-import android.util.Log;
 
 import com.uowee.charon.api.BaseApiService;
+import com.uowee.charon.callback.CharonCallback;
 import com.uowee.charon.interceptor.GzipRequestInterceptor;
 import com.uowee.charon.interceptor.HeadersInterceptor;
+import com.uowee.charon.subscriber.CharonSubscriber;
 import com.uowee.charon.utils.SSLUtil;
 import com.uowee.charon.utils.Utils;
 
@@ -25,6 +26,9 @@ import retrofit2.Converter;
 import retrofit2.Retrofit;
 import retrofit2.adapter.rxjava.RxJavaCallAdapterFactory;
 import retrofit2.converter.gson.GsonConverterFactory;
+import rx.Observable;
+import rx.android.schedulers.AndroidSchedulers;
+import rx.schedulers.Schedulers;
 
 /**
  * Created by GuoWee on 2017/10/26 14:34
@@ -37,7 +41,10 @@ public final class Charon {
     private static OkHttpClient okHttpClient;
     private static OkHttpClient.Builder okHttpClientBuilder;
 
-    public Charon() {
+
+    private Observable.Transformer exceptionTransformer = null;
+
+    private Charon() {
 
     }
 
@@ -51,6 +58,36 @@ public final class Charon {
     public <T> T create(final Class<T> service) {
         return retrofit.create(service);
     }
+
+
+
+    public <T> T get(String url, Map<String, Object> maps, CharonCallback<T> callback) {
+        return (T) apiService.get(url, maps).compose(schedulersTransformer).compose(handleErrTransformer()).subscribe(new CharonSubscriber<T>(mContext, callback));
+    }
+
+
+    final Observable.Transformer schedulersTransformer = new Observable.Transformer() {
+        @Override
+        public Object call(Object observable) {
+            return ((Observable) observable).subscribeOn(Schedulers.io()).unsubscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread());
+        }
+    };
+
+    public <T> Observable.Transformer<CharonResponse<T>, T> handleErrTransformer() {
+
+        if (exceptionTransformer != null) {
+            return exceptionTransformer;
+        } else {
+            return exceptionTransformer = new Observable.Transformer() {
+                @Override
+                public Object call(Object o) {
+                    return ((Observable) o);
+                }
+            };
+        }
+
+    }
+
 
     public static final class Builder {
         private okhttp3.Call.Factory callFactory;
