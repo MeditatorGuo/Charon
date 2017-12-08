@@ -11,7 +11,7 @@ import rx.Observable;
 public interface BaseApiService {
 
     @GET()
-    Observable<ResponseBody> get(@Url String url, @QueryMap Map<String,Object> maps);
+    Observable<ResponseBody> get(@Url String url, @QueryMap Map<String,String> maps);
 
 }
 

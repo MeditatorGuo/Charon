@@ -12,7 +12,7 @@ public interface CharonCallback<T> {
 
     void onError(CharonException e);
 
-    void onComleted();
+    void onCompleted();
 
     void onNext(T t);
 

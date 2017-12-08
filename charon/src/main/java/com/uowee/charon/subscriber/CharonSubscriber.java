@@ -31,7 +31,7 @@ public class CharonSubscriber<T> extends BaseSubscriber<T> {
 
     @Override
     public void onCompleted() {
-        callback.onComleted();
+        callback.onCompleted();
     }
 
     @Override

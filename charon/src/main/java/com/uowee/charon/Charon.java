@@ -4,9 +4,12 @@ import android.content.Context;
 
 import com.uowee.charon.api.BaseApiService;
 import com.uowee.charon.callback.CharonCallback;
+import com.uowee.charon.func.ApiErrFunc;
+import com.uowee.charon.func.ApiFunc;
 import com.uowee.charon.interceptor.GzipRequestInterceptor;
 import com.uowee.charon.interceptor.HeadersInterceptor;
 import com.uowee.charon.subscriber.CharonSubscriber;
+import com.uowee.charon.utils.ClassUtil;
 import com.uowee.charon.utils.SSLUtil;
 import com.uowee.charon.utils.Utils;
 
@@ -21,12 +24,14 @@ import okhttp3.Call;
 import okhttp3.ConnectionPool;
 import okhttp3.Interceptor;
 import okhttp3.OkHttpClient;
+import okhttp3.ResponseBody;
 import retrofit2.CallAdapter;
 import retrofit2.Converter;
 import retrofit2.Retrofit;
 import retrofit2.adapter.rxjava.RxJavaCallAdapterFactory;
 import retrofit2.converter.gson.GsonConverterFactory;
 import rx.Observable;
+import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.schedulers.Schedulers;
 
@@ -60,34 +65,45 @@ public final class Charon {
     }
 
 
-
-    public <T> T get(String url, Map<String, Object> maps, CharonCallback<T> callback) {
-        return (T) apiService.get(url, maps).compose(schedulersTransformer).compose(handleErrTransformer()).subscribe(new CharonSubscriber<T>(mContext, callback));
+    /**
+     * 普通Get方式请求，需传入实体类
+     * @param url
+     * @param maps
+     * @param clazz
+     * @param <T>
+     * @return
+     */
+    public <T> Observable<T> get(String url, Map<String, String> maps, Class<T> clazz) {
+        return apiService.get(url, maps).compose(this.normalTransformer(clazz));
     }
 
-
-    final Observable.Transformer schedulersTransformer = new Observable.Transformer() {
-        @Override
-        public Object call(Object observable) {
-            return ((Observable) observable).subscribeOn(Schedulers.io()).unsubscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread());
-        }
-    };
-
-    public <T> Observable.Transformer<CharonResponse<T>, T> handleErrTransformer() {
-
-        if (exceptionTransformer != null) {
-            return exceptionTransformer;
-        } else {
-            return exceptionTransformer = new Observable.Transformer() {
-                @Override
-                public Object call(Object o) {
-                    return ((Observable) o);
-                }
-            };
-        }
-
+    /**
+     * 普通Get方式请求,需传入Callback回调
+     * @param url
+     * @param maps
+     * @param callback
+     * @param <T>
+     * @return
+     */
+    public <T> Subscription get(String url, Map<String, String> maps, CharonCallback<T> callback) {
+        return this.get(url, maps, ClassUtil.getTClass(callback)).subscribe(new CharonSubscriber(mContext, callback));
     }
 
+/*
+    public <T> Observable cacheGet(final String url, final Map<String, String> maps, Class<T> clazz){
+
+    }*/
+
+
+    private <T> Observable.Transformer<ResponseBody,T> normalTransformer(final Class<T> clazz){
+        return new Observable.Transformer<ResponseBody, T>() {
+            @Override
+            public Observable<T> call(Observable<ResponseBody> responseBodyObservable) {
+                return responseBodyObservable.subscribeOn(Schedulers.io()).unsubscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread())
+                        .map(new ApiFunc<T>(clazz)).onErrorResumeNext(new ApiErrFunc<T>());
+            }
+        };
+    }
 
     public static final class Builder {
         private okhttp3.Call.Factory callFactory;
