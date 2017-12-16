@@ -230,7 +230,6 @@ public class AppUtil {
     public static String getNetType(final Context context) {
         ConnectivityManager connectionManager = (ConnectivityManager) context
                 .getSystemService(Context.CONNECTIVITY_SERVICE);
-        ;
         NetworkInfo networkInfo = connectionManager.getActiveNetworkInfo();
         // networkInfo.getDetailedState();//获取详细状态。
         // networkInfo.getExtraInfo();//获取附加信息。

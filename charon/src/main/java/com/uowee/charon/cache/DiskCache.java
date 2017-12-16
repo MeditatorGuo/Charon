@@ -5,7 +5,7 @@ import android.os.Environment;
 import android.os.StatFs;
 import android.text.TextUtils;
 
-import com.uowee.charon.Config;
+import com.uowee.charon.Const;
 import com.uowee.charon.utils.AppUtil;
 import com.uowee.charon.utils.JsonUtils;
 import com.uowee.charon.utils.MD5;
@@ -32,8 +32,8 @@ public class DiskCache implements ICache {
     private long cacheTime = CACHE_NEVER_EXPIRE;
 
     public DiskCache(Context context) {
-        this(context, getDiskCacheDir(context, Config.CACHE_DISK_DIR),
-                calculateDiskCacheSize(getDiskCacheDir(context, Config.CACHE_DISK_DIR)));
+        this(context, getDiskCacheDir(context, Const.CACHE_DISK_DIR),
+                calculateDiskCacheSize(getDiskCacheDir(context, Const.CACHE_DISK_DIR)));
     }
     public DiskCache(Context context, File diskDir, long diskMaxSize) {
         compile = Pattern.compile(REGEX);

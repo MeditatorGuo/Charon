@@ -1,15 +1,16 @@
 package com.uowee.charon;
 
+import android.app.Activity;
 import android.content.Context;
 
 import com.uowee.charon.api.BaseApiService;
-import com.uowee.charon.callback.CharonCallback;
+import com.uowee.charon.callback.ResponseCallback;
 import com.uowee.charon.func.ApiErrFunc;
-import com.uowee.charon.func.ApiFunc;
 import com.uowee.charon.interceptor.GzipRequestInterceptor;
 import com.uowee.charon.interceptor.HeadersInterceptor;
+import com.uowee.charon.mode.CharonResponse;
+import com.uowee.charon.subscriber.BaseSubscriber;
 import com.uowee.charon.subscriber.CharonSubscriber;
-import com.uowee.charon.utils.ClassUtil;
 import com.uowee.charon.utils.SSLUtil;
 import com.uowee.charon.utils.Utils;
 
@@ -31,7 +32,6 @@ import retrofit2.Retrofit;
 import retrofit2.adapter.rxjava.RxJavaCallAdapterFactory;
 import retrofit2.converter.gson.GsonConverterFactory;
 import rx.Observable;
-import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.schedulers.Schedulers;
 
@@ -39,6 +39,8 @@ import rx.schedulers.Schedulers;
  * Created by GuoWee on 2017/10/26 14:34
  */
 public final class Charon {
+
+    public static final String TAG = "Charon";
     private static Context mContext;
     private static Retrofit retrofit;
     private static BaseApiService apiService;
@@ -64,46 +66,41 @@ public final class Charon {
         return retrofit.create(service);
     }
 
-
-    /**
-     * 普通Get方式请求，需传入实体类
-     * @param url
-     * @param maps
-     * @param clazz
-     * @param <T>
-     * @return
-     */
-    public <T> Observable<T> get(String url, Map<String, String> maps, Class<T> clazz) {
-        return apiService.get(url, maps).compose(this.normalTransformer(clazz));
+    public <T> T executeGet(String url, Map<String, Object> maps, ResponseCallback<T> callback) {
+        return (T) apiService.get(url, maps)
+                .compose(schedulersTransformer)
+                .compose(handleErrorTransform())
+                .subscribe(new CharonSubscriber<T>(mContext, callback));
     }
 
-    /**
-     * 普通Get方式请求,需传入Callback回调
-     * @param url
-     * @param maps
-     * @param callback
-     * @param <T>
-     * @return
-     */
-    public <T> Subscription get(String url, Map<String, String> maps, CharonCallback<T> callback) {
-        return this.get(url, maps, ClassUtil.getTClass(callback)).subscribe(new CharonSubscriber(mContext, callback));
+
+    public <T> T get(String url, Map<String, Object> maps, BaseSubscriber<ResponseBody> subscriber) {
+        return (T) apiService.get(url, maps).compose(schedulersTransformer)
+                .compose(handleErrorTransform()).subscribe(subscriber);
     }
 
-/*
-    public <T> Observable cacheGet(final String url, final Map<String, String> maps, Class<T> clazz){
 
-    }*/
+    final Observable.Transformer schedulersTransformer = new Observable.Transformer() {
+        @Override
+        public Object call(Object o) {
+            return ((Observable) o).subscribeOn(Schedulers.io()).unsubscribeOn(Schedulers.io())
+                    .observeOn(AndroidSchedulers.mainThread());
+        }
+    };
 
-
-    private <T> Observable.Transformer<ResponseBody,T> normalTransformer(final Class<T> clazz){
-        return new Observable.Transformer<ResponseBody, T>() {
-            @Override
-            public Observable<T> call(Observable<ResponseBody> responseBodyObservable) {
-                return responseBodyObservable.subscribeOn(Schedulers.io()).unsubscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread())
-                        .map(new ApiFunc<T>(clazz)).onErrorResumeNext(new ApiErrFunc<T>());
-            }
-        };
+    final <T> Observable.Transformer<CharonResponse<T>, T> handleErrorTransform() {
+        if (exceptionTransformer != null) {
+            return exceptionTransformer;
+        } else {
+            return exceptionTransformer = new Observable.Transformer() {
+                @Override
+                public Object call(Object o) {
+                    return ((Observable) o).onErrorResumeNext(new ApiErrFunc<>());
+                }
+            };
+        }
     }
+
 
     public static final class Builder {
         private okhttp3.Call.Factory callFactory;
@@ -115,9 +112,13 @@ public final class Charon {
         private String baseUrl;
 
         public Builder(Context context) {
-            mContext = context;
-            retrofitBuilder = new Retrofit.Builder();
             okHttpClientBuilder = new OkHttpClient.Builder();
+            retrofitBuilder = new Retrofit.Builder();
+            if (context instanceof Activity) {
+                mContext = context.getApplicationContext();
+            } else {
+                mContext = context;
+            }
         }
 
         /**
@@ -289,7 +290,7 @@ public final class Charon {
             if (timeout > -1) {
                 okHttpClientBuilder.connectTimeout(timeout, unit);
             } else {
-                okHttpClientBuilder.connectTimeout(Config.DEFAULT_TIMEOUT, TimeUnit.SECONDS);
+                okHttpClientBuilder.connectTimeout(Const.DEFAULT_TIMEOUT, TimeUnit.SECONDS);
             }
             return this;
         }
@@ -305,7 +306,7 @@ public final class Charon {
             if (timeout > -1) {
                 okHttpClientBuilder.readTimeout(timeout, unit);
             } else {
-                okHttpClientBuilder.readTimeout(Config.DEFAULT_TIMEOUT, TimeUnit.SECONDS);
+                okHttpClientBuilder.readTimeout(Const.DEFAULT_TIMEOUT, TimeUnit.SECONDS);
             }
             return this;
         }
@@ -321,7 +322,7 @@ public final class Charon {
             if (timeout > -1) {
                 okHttpClientBuilder.writeTimeout(timeout, unit);
             } else {
-                okHttpClientBuilder.writeTimeout(Config.DEFAULT_TIMEOUT, TimeUnit.SECONDS);
+                okHttpClientBuilder.writeTimeout(Const.DEFAULT_TIMEOUT, TimeUnit.SECONDS);
             }
             return this;
         }
@@ -399,8 +400,8 @@ public final class Charon {
             okHttpClientBuilder.sslSocketFactory(sslSocketFactory);
 
             if (connectionPool == null) {
-                connectionPool = new ConnectionPool(Config.DEFAULT_MAX_IDLE_CONNECTIONS,
-                        Config.DEFAULT_KEEP_ALIVE_DURATION, TimeUnit.SECONDS);
+                connectionPool = new ConnectionPool(Const.DEFAULT_MAX_IDLE_CONNECTIONS,
+                        Const.DEFAULT_KEEP_ALIVE_DURATION, TimeUnit.SECONDS);
             }
             okHttpClientBuilder.connectionPool(connectionPool);
 

@@ -5,7 +5,7 @@ package com.uowee.charon;
  */
 public class ApiHost {
 
-    private static String host = Config.API_HOST;
+    private static String host = Const.API_HOST;
     public static String getHost() {
         return host;
     }

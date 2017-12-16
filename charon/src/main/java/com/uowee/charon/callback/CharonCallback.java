@@ -1,19 +1,57 @@
 package com.uowee.charon.callback;
 
-import com.uowee.charon.exception.CharonException;
+import android.content.Context;
+import android.os.Handler;
+import android.os.Looper;
+
+
+import okhttp3.Call;
+import okhttp3.Callback;
+import okhttp3.ResponseBody;
 
 /**
  * Created by Sim.G on 2017/12/6.
  */
 
-public interface CharonCallback<T> {
+public abstract class CharonCallback<T, E> implements Callback, IGenericConvert<E> {
+    protected String TAG = "CharonCallback";
+    protected Object tag;
+    protected Handler handler;
+    private Context context;
 
-    void onStart();
+    public CharonCallback(Object tag) {
+        this.tag = tag;
+    }
 
-    void onError(CharonException e);
+    public CharonCallback() {
+        if (handler == null) {
+            handler = new Handler(Looper.getMainLooper());
+        }
+    }
 
-    void onCompleted();
+    public Object getTag() {
+        return tag;
+    }
 
-    void onNext(T t);
+    public void setTag(Object tag) {
+        this.tag = tag;
+    }
+
+    public Handler getHandler() {
+        return handler;
+    }
+
+    public void setHandler(Handler handler) {
+        this.handler = handler;
+    }
+
+    public abstract T onHandleResponse(ResponseBody response) throws Exception;
+
+    public abstract void onError(Object tag, Throwable e);
+
+    public abstract void onCancel(Object tag, Throwable e);
+
+    public abstract void onNext(Object tag, Call call, T response);
+
 
 }
