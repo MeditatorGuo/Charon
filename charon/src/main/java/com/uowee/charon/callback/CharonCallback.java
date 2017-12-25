@@ -5,8 +5,11 @@ import android.os.Handler;
 import android.os.Looper;
 
 
+import java.io.IOException;
+
 import okhttp3.Call;
 import okhttp3.Callback;
+import okhttp3.Response;
 import okhttp3.ResponseBody;
 
 /**
@@ -15,13 +18,9 @@ import okhttp3.ResponseBody;
 
 public abstract class CharonCallback<T, E> implements Callback, IGenericConvert<E> {
     protected String TAG = "CharonCallback";
-    protected Object tag;
     protected Handler handler;
     private Context context;
 
-    public CharonCallback(Object tag) {
-        this.tag = tag;
-    }
 
     public CharonCallback() {
         if (handler == null) {
@@ -29,13 +28,6 @@ public abstract class CharonCallback<T, E> implements Callback, IGenericConvert<
         }
     }
 
-    public Object getTag() {
-        return tag;
-    }
-
-    public void setTag(Object tag) {
-        this.tag = tag;
-    }
 
     public Handler getHandler() {
         return handler;
@@ -47,11 +39,50 @@ public abstract class CharonCallback<T, E> implements Callback, IGenericConvert<
 
     public abstract T onHandleResponse(ResponseBody response) throws Exception;
 
-    public abstract void onError(Object tag, Throwable e);
+    public abstract void onError( Throwable e);
 
-    public abstract void onCancel(Object tag, Throwable e);
+    public abstract void onCancel( Throwable e);
 
-    public abstract void onNext(Object tag, Call call, T response);
+    public abstract void onNext( Call call, T response);
 
+
+
+    public static CharonCallback DEFAULT_CALLBACK = new CharonCallback() {
+
+        @Override
+        public void onFailure(Call call, IOException e) {
+
+        }
+
+        @Override
+        public void onResponse(Call call, Response response) throws IOException {
+
+        }
+
+        @Override
+        public Object onHandleResponse(ResponseBody response) throws Exception {
+            return null;
+        }
+
+        @Override
+        public void onError(Throwable e) {
+
+        }
+
+        @Override
+        public void onCancel(Throwable e) {
+
+        }
+
+        @Override
+        public void onNext(Call call, Object response) {
+
+        }
+
+        @Override
+        public Object transform(Object response, Class clazz) throws Exception {
+            return null;
+        }
+    };
 
 }

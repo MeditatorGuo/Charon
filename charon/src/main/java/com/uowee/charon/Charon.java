@@ -4,11 +4,11 @@ import android.app.Activity;
 import android.content.Context;
 
 import com.uowee.charon.api.BaseApiService;
-import com.uowee.charon.callback.ResponseCallback;
+import com.uowee.charon.callback.CharonCallback;
 import com.uowee.charon.func.ApiErrFunc;
 import com.uowee.charon.interceptor.GzipRequestInterceptor;
 import com.uowee.charon.interceptor.HeadersInterceptor;
-import com.uowee.charon.mode.CharonResponse;
+import com.uowee.charon.mode.ApiResult;
 import com.uowee.charon.subscriber.BaseSubscriber;
 import com.uowee.charon.subscriber.CharonSubscriber;
 import com.uowee.charon.utils.SSLUtil;
@@ -33,6 +33,7 @@ import retrofit2.adapter.rxjava.RxJavaCallAdapterFactory;
 import retrofit2.converter.gson.GsonConverterFactory;
 import rx.Observable;
 import rx.android.schedulers.AndroidSchedulers;
+import rx.functions.Func1;
 import rx.schedulers.Schedulers;
 
 /**
@@ -66,17 +67,50 @@ public final class Charon {
         return retrofit.create(service);
     }
 
-    public <T> T executeGet(String url, Map<String, Object> maps, ResponseCallback<T> callback) {
-        return (T) apiService.get(url, maps)
-                .compose(schedulersTransformer)
-                .compose(handleErrorTransform())
-                .subscribe(new CharonSubscriber<T>(mContext, callback));
+
+
+
+    public <T> Observable<T> get(String url,Map<String,Object> maps) {
+        return (Observable<T>) apiService.get(url, maps);
     }
 
-
+    /**
+     *
+     * @param url
+     * @param maps
+     * @param subscriber
+     * @param <T>
+     * @return
+     */
     public <T> T get(String url, Map<String, Object> maps, BaseSubscriber<ResponseBody> subscriber) {
         return (T) apiService.get(url, maps).compose(schedulersTransformer)
                 .compose(handleErrorTransform()).subscribe(subscriber);
+    }
+
+
+    /**
+     *
+     * @param url
+     * @param callback
+     * @param <T>
+     * @return
+     */
+    public <T> T get(String url,CharonCallback<T,ResponseBody> callback){
+        return get(url,null,callback);
+    }
+
+    /**
+     * RX Get
+     * @param url
+     * @param maps
+     * @param callback
+     * @param <T>
+     * @return
+     */
+    public <T> T get(String url, Map<String, Object> maps, CharonCallback<T, ResponseBody> callback) {
+        return (T) apiService.get(url, maps).compose(schedulersTransformer)
+                .compose(handleErrorTransform())
+                .subscribe(new CharonSubscriber<T, ResponseBody>(callback).setContext(mContext));
     }
 
 
@@ -88,14 +122,12 @@ public final class Charon {
         }
     };
 
-    final <T> Observable.Transformer<CharonResponse<T>, T> handleErrorTransform() {
-        if (exceptionTransformer != null) {
-            return exceptionTransformer;
-        } else {
-            return exceptionTransformer = new Observable.Transformer() {
+    final <T> Observable.Transformer<ApiResult<T>, T> handleErrorTransform() {
+
+            return new Observable.Transformer<ApiResult<T>,T>() {
                 @Override
-                public Object call(Object o) {
-                    return ((Observable) o).onErrorResumeNext(new ApiErrFunc<>());
+                public Observable<T> call(Observable<ApiResult<T>> observable) {
+                    return observable.onErrorResumeNext(new ApiErrFunc<T>());
                 }
             };
         }

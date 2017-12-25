@@ -23,7 +23,7 @@ public abstract class BaseSubscriber<T> extends Subscriber<T> {
     public BaseSubscriber(Context context) {
           this.context = context;
     }
-
+    public BaseSubscriber(){}
 
     @Override
     public void onError(Throwable e) {
