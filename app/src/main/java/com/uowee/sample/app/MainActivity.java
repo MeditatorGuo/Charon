@@ -15,7 +15,8 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 import com.uowee.charon.Charon;
-import com.uowee.charon.exception.CharonThrowable;
+import com.uowee.charon.callback.CharonCallback;
+import com.uowee.charon.exception.CharonException;
 import com.uowee.charon.subscriber.BaseSubscriber;
 import com.uowee.sample.app.model.MovieModel;
 
@@ -78,7 +79,7 @@ public class MainActivity extends BaseActivity {
         getBtn2.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-
+               perform1();
             }
         });
     }
@@ -88,11 +89,15 @@ public class MainActivity extends BaseActivity {
 
         parameters.clear();
         parameters.put("start", "0");
-        parameters.put("count", "3");
+        parameters.put("count", "8");
         charon = new Charon.Builder(mContext)
                 .baseUrl("https://api.douban.com/v2/")
                 .converterFactory(GsonConverterFactory.create(new GsonBuilder().create())).build();
         charon.get("movie/top250", parameters, new BaseSubscriber<ResponseBody>(mContext) {
+            @Override
+            public void onCompleted() {
+
+            }
 
             @Override
             public void onNext(ResponseBody responseBody) {
@@ -114,10 +119,57 @@ public class MainActivity extends BaseActivity {
             }
 
             @Override
-            public void onError(CharonThrowable e) {
+            public void onError(CharonException e) {
 
             }
         });
+
+    }
+    private void perform1() {
+        parameters.clear();
+        parameters.put("start", "0");
+        parameters.put("count", "5");
+        charon = new Charon.Builder(mContext)
+                .baseUrl("https://api.douban.com/v2/")
+                .converterFactory(GsonConverterFactory.create(new GsonBuilder().create())).build();
+        charon.get("movie/top250", parameters, new CharonCallback<ResponseBody>() {
+            @Override
+            public void onStart() {
+
+            }
+
+            @Override
+            public void onError(CharonException e) {
+
+            }
+
+            @Override
+            public void onCompleted() {
+
+            }
+
+            @Override
+            public void onNext(ResponseBody response) {
+                try {
+                    String jstr = new String(response.bytes());
+                    Type type = new TypeToken<MovieModel>() {
+                    }.getType();
+
+                    MovieModel movieModel = new Gson().fromJson(jstr, type);
+                    List<MovieModel.SubjectsBean> list = movieModel.getSubjects();
+                    for (MovieModel.SubjectsBean bean: list){
+                        Log.e("TAG","Title:" + bean.getTitle() + ",Directors:" + bean.getDirectors().get(0).getName());
+                    }
+                    Toast.makeText(MainActivity.this, movieModel.toString(), Toast.LENGTH_SHORT).show();
+
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+
+
+
 
     }
 

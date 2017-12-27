@@ -25,15 +25,17 @@ import okhttp3.Call;
 import okhttp3.ConnectionPool;
 import okhttp3.Interceptor;
 import okhttp3.OkHttpClient;
+import okhttp3.RequestBody;
 import okhttp3.ResponseBody;
 import retrofit2.CallAdapter;
 import retrofit2.Converter;
 import retrofit2.Retrofit;
 import retrofit2.adapter.rxjava.RxJavaCallAdapterFactory;
 import retrofit2.converter.gson.GsonConverterFactory;
+import retrofit2.http.FieldMap;
 import rx.Observable;
+import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
-import rx.functions.Func1;
 import rx.schedulers.Schedulers;
 
 /**
@@ -49,8 +51,6 @@ public final class Charon {
     private static OkHttpClient okHttpClient;
     private static OkHttpClient.Builder okHttpClientBuilder;
 
-
-    private Observable.Transformer exceptionTransformer = null;
 
     private Charon() {
 
@@ -68,51 +68,76 @@ public final class Charon {
     }
 
 
-
-
-    public <T> Observable<T> get(String url,Map<String,Object> maps) {
+    public <T> Observable<T> get(String url, Map<String, Object> maps) {
         return (Observable<T>) apiService.get(url, maps);
     }
 
     /**
+     * @param url
+     * @param callback
+     * @param <T>
+     * @return
+     */
+    public <T> Subscription get(String url, CharonCallback<T> callback) {
+        return get(url, null, callback);
+    }
+
+    /**
+     * 普通Get方式请求，需要传入subscriber
      *
      * @param url
      * @param maps
      * @param subscriber
-     * @param <T>
      * @return
      */
-    public <T> T get(String url, Map<String, Object> maps, BaseSubscriber<ResponseBody> subscriber) {
-        return (T) apiService.get(url, maps).compose(schedulersTransformer)
-                .compose(handleErrorTransform()).subscribe(subscriber);
+    public Subscription get(String url, Map<String, Object> maps, BaseSubscriber<ResponseBody> subscriber) {
+        return apiService.get(url, maps).compose(schedulersTransformer).compose(handleErrorTransform()).subscribe(subscriber);
     }
 
-
     /**
+     * 普通Get方式请求，需要传入callback
      *
-     * @param url
-     * @param callback
-     * @param <T>
-     * @return
-     */
-    public <T> T get(String url,CharonCallback<T,ResponseBody> callback){
-        return get(url,null,callback);
-    }
-
-    /**
-     * RX Get
      * @param url
      * @param maps
      * @param callback
      * @param <T>
      * @return
      */
-    public <T> T get(String url, Map<String, Object> maps, CharonCallback<T, ResponseBody> callback) {
-        return (T) apiService.get(url, maps).compose(schedulersTransformer)
-                .compose(handleErrorTransform())
-                .subscribe(new CharonSubscriber<T, ResponseBody>(callback).setContext(mContext));
+    public <T> Subscription get(String url, Map<String, Object> maps, CharonCallback<T> callback) {
+        return apiService.get(url, maps).compose(schedulersTransformer).compose(handleErrorTransform()).subscribe(new CharonSubscriber(mContext, callback));
     }
 
+    public <T> Subscription post(String url, Map<String, Object> maps, BaseSubscriber<ResponseBody> subscriber) {
+        return apiService.post(url, maps).compose(schedulersTransformer).compose(handleErrorTransform()).subscribe(subscriber);
+    }
+
+    public <T> Subscription post(String url, Map<String, Object> maps, CharonCallback<T> callback) {
+        return  apiService.post(url, maps).compose(schedulersTransformer).compose(handleErrorTransform()).subscribe(new CharonSubscriber(mContext, callback));
+    }
+
+    public <T> Subscription form(String url, @FieldMap(encoded = true) Map<String, Object> fields, CharonCallback<T> callback) {
+        return  apiService.postForm(url, fields).compose(schedulersTransformer).compose(handleErrorTransform()).subscribe(new CharonSubscriber(mContext, callback));
+    }
+
+    public <T> Subscription form(String url, @FieldMap(encoded = true) Map<String, Object> fields, BaseSubscriber<ResponseBody> subscriber) {
+        return apiService.postForm(url, fields).compose(schedulersTransformer).compose(handleErrorTransform()).subscribe(subscriber);
+    }
+
+    public <T> Subscription body(String url, Object body, CharonCallback<T> callback) {
+        return apiService.postBody(url, body).compose(schedulersTransformer).compose(handleErrorTransform()).subscribe(new CharonSubscriber(mContext, callback));
+    }
+
+    public <T> Subscription body(String url, Object body, BaseSubscriber<ResponseBody> subscriber) {
+        return apiService.postBody(url, body).compose(schedulersTransformer).compose(handleErrorTransform()).subscribe(subscriber);
+    }
+
+    public <T> Subscription json(String url, RequestBody json, CharonCallback<T> callback) {
+        return apiService.postJson(url, json).compose(schedulersTransformer).compose(handleErrorTransform()).subscribe(new CharonSubscriber(mContext, callback));
+    }
+
+    public <T> Subscription json(String url, RequestBody json, BaseSubscriber<ResponseBody> subscriber) {
+        return apiService.postJson(url, json).compose(schedulersTransformer).compose(handleErrorTransform()).subscribe(subscriber);
+    }
 
     final Observable.Transformer schedulersTransformer = new Observable.Transformer() {
         @Override
@@ -124,13 +149,12 @@ public final class Charon {
 
     final <T> Observable.Transformer<ApiResult<T>, T> handleErrorTransform() {
 
-            return new Observable.Transformer<ApiResult<T>,T>() {
-                @Override
-                public Observable<T> call(Observable<ApiResult<T>> observable) {
-                    return observable.onErrorResumeNext(new ApiErrFunc<T>());
-                }
-            };
-        }
+        return new Observable.Transformer<ApiResult<T>, T>() {
+            @Override
+            public Observable<T> call(Observable<ApiResult<T>> observable) {
+                return observable.onErrorResumeNext(new ApiErrFunc());
+            }
+        };
     }
 
 
@@ -443,9 +467,5 @@ public final class Charon {
             apiService = retrofit.create(BaseApiService.class);
             return new Charon();
         }
-
-
     }
-
-
 }

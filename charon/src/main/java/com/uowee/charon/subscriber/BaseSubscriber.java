@@ -4,9 +4,7 @@ import android.accounts.NetworkErrorException;
 import android.content.Context;
 
 import com.uowee.charon.exception.CharonException;
-import com.uowee.charon.exception.CharonThrowable;
 import com.uowee.charon.mode.ApiCode;
-import com.uowee.charon.utils.Logger;
 import com.uowee.charon.utils.Network;
 
 import java.lang.ref.WeakReference;
@@ -19,51 +17,29 @@ import rx.Subscriber;
 
 public abstract class BaseSubscriber<T> extends Subscriber<T> {
 
-    protected Context context;
+    public WeakReference<Context> contextWeakReference;
+
     public BaseSubscriber(Context context) {
-          this.context = context;
+        contextWeakReference = new WeakReference<Context>(context);
     }
-    public BaseSubscriber(){}
 
     @Override
     public void onError(Throwable e) {
-        if (e != null && e.getMessage() != null) {
-            Logger.v("Charon", e.getMessage());
-
+        if (e instanceof CharonException) {
+            onError((CharonException) e);
         } else {
-            Logger.v("Charon", "Throwable  || Message == Null");
+            onError(new CharonException(e, ApiCode.Request.UNKNOWN));
         }
-
-        if (e instanceof Throwable) {
-            Logger.e("Charon", "--> e instanceof Throwable");
-            Logger.e("Charon", "--> " + e.getCause().toString());
-            onError(e);
-        } else {
-            Logger.e("Charon", "e !instanceof Throwable");
-            String detail = "";
-            if (e.getCause() != null) {
-                detail = e.getCause().getMessage();
-            }
-            Logger.e("Charon", "--> " + detail);
-            onError(CharonException.handleException(e));
-        }
-        onCompleted();
     }
 
     @Override
     public void onStart() {
         super.onStart();
-        Logger.v("Charon", "--> http is start");
-        if (!Network.isConnected(context)) {
+        if (!Network.isConnected(contextWeakReference.get())) {
             onError(new CharonException(new NetworkErrorException(), ApiCode.Request.NETWORK_ERROR));
         }
     }
 
-    @Override
-    public void onCompleted() {
-        Logger.v("Charon", "-->http is complete");
-    }
-
-    public abstract void onError(CharonThrowable e);
+    public abstract void onError(CharonException e);
 
 }

@@ -3,43 +3,42 @@ package com.uowee.charon.subscriber;
 import android.content.Context;
 
 import com.uowee.charon.callback.CharonCallback;
-import com.uowee.charon.exception.CharonThrowable;
-
-import okhttp3.ResponseBody;
+import com.uowee.charon.exception.CharonException;
 
 /**
  * Created by Sim.G on 2017/12/17.
  */
 
-public class CharonSubscriber<T,E> extends BaseSubscriber<ResponseBody> {
+public class CharonSubscriber<T> extends BaseSubscriber<T> {
 
-    private Context context;
-    private CharonCallback<T,E> callback;
+    private CharonCallback<T> callback;
 
-    public CharonSubscriber(CharonCallback<T,E> callback){
-        super();
-        if(callback == null){
-            this.callback =CharonCallback.DEFAULT_CALLBACK ;
-        }else {
-            this.callback = callback;
+    public CharonSubscriber(Context context, CharonCallback<T> callback) {
+        super(context);
+        if (callback == null) {
+            throw new NullPointerException("this callback is null!");
         }
-    }
-
-    public CharonSubscriber setContext(Context context){
-        this.context = context;
-        return this;
-    }
-    public Context getContext(){
-        return context;
+        this.callback = callback;
     }
 
     @Override
-    public void onError(CharonThrowable e) {
-
+    public void onStart() {
+        super.onStart();
+        callback.onStart();
     }
 
     @Override
-    public void onNext(ResponseBody responseBody) {
+    public void onError(CharonException e) {
+        callback.onError(e);
+    }
 
+    @Override
+    public void onCompleted() {
+        callback.onCompleted();
+    }
+
+    @Override
+    public void onNext(T t) {
+        callback.onNext(t);
     }
 }
