@@ -35,10 +35,10 @@ public interface BaseApiService {
     Observable<ResponseBody> postJson(@Url String url, @Body RequestBody json);
 
     @DELETE()
-    Observable<ResponseBody> delete(@Url() String url, @QueryMap Map<String, String> maps);
+    Observable<ResponseBody> delete(@Url() String url, @QueryMap Map<String, Object> maps);
 
     @PUT()
-    Observable<ResponseBody> put(@Url() String url, @QueryMap Map<String, String> maps);
+    Observable<ResponseBody> put(@Url() String url, @QueryMap Map<String, Object> maps);
 }
 
 

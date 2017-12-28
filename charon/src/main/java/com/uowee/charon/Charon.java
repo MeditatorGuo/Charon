@@ -107,19 +107,19 @@ public final class Charon {
         return apiService.get(url, maps).compose(schedulersTransformer).compose(handleErrorTransform()).subscribe(new CharonSubscriber(mContext, callback));
     }
 
-    public <T> Subscription post(String url, Map<String, Object> maps, BaseSubscriber<ResponseBody> subscriber) {
+    public Subscription post(String url, Map<String, Object> maps, BaseSubscriber<ResponseBody> subscriber) {
         return apiService.post(url, maps).compose(schedulersTransformer).compose(handleErrorTransform()).subscribe(subscriber);
     }
 
     public <T> Subscription post(String url, Map<String, Object> maps, CharonCallback<T> callback) {
-        return  apiService.post(url, maps).compose(schedulersTransformer).compose(handleErrorTransform()).subscribe(new CharonSubscriber(mContext, callback));
+        return apiService.post(url, maps).compose(schedulersTransformer).compose(handleErrorTransform()).subscribe(new CharonSubscriber(mContext, callback));
     }
 
     public <T> Subscription form(String url, @FieldMap(encoded = true) Map<String, Object> fields, CharonCallback<T> callback) {
-        return  apiService.postForm(url, fields).compose(schedulersTransformer).compose(handleErrorTransform()).subscribe(new CharonSubscriber(mContext, callback));
+        return apiService.postForm(url, fields).compose(schedulersTransformer).compose(handleErrorTransform()).subscribe(new CharonSubscriber(mContext, callback));
     }
 
-    public <T> Subscription form(String url, @FieldMap(encoded = true) Map<String, Object> fields, BaseSubscriber<ResponseBody> subscriber) {
+    public Subscription form(String url, @FieldMap(encoded = true) Map<String, Object> fields, BaseSubscriber<ResponseBody> subscriber) {
         return apiService.postForm(url, fields).compose(schedulersTransformer).compose(handleErrorTransform()).subscribe(subscriber);
     }
 
@@ -127,7 +127,7 @@ public final class Charon {
         return apiService.postBody(url, body).compose(schedulersTransformer).compose(handleErrorTransform()).subscribe(new CharonSubscriber(mContext, callback));
     }
 
-    public <T> Subscription body(String url, Object body, BaseSubscriber<ResponseBody> subscriber) {
+    public Subscription body(String url, Object body, BaseSubscriber<ResponseBody> subscriber) {
         return apiService.postBody(url, body).compose(schedulersTransformer).compose(handleErrorTransform()).subscribe(subscriber);
     }
 
@@ -135,9 +135,26 @@ public final class Charon {
         return apiService.postJson(url, json).compose(schedulersTransformer).compose(handleErrorTransform()).subscribe(new CharonSubscriber(mContext, callback));
     }
 
-    public <T> Subscription json(String url, RequestBody json, BaseSubscriber<ResponseBody> subscriber) {
+    public Subscription json(String url, RequestBody json, BaseSubscriber<ResponseBody> subscriber) {
         return apiService.postJson(url, json).compose(schedulersTransformer).compose(handleErrorTransform()).subscribe(subscriber);
     }
+
+    public Subscription put(String url, Map<String, Object> maps, BaseSubscriber<ResponseBody> subscriber) {
+        return apiService.put(url, maps).compose(schedulersTransformer).compose(handleErrorTransform()).subscribe(subscriber);
+    }
+
+    public <T> Subscription put(String url, Map<String, Object> maps, CharonCallback<T> callback) {
+        return apiService.put(url, maps).compose(schedulersTransformer).compose(handleErrorTransform()).subscribe(new CharonSubscriber(mContext, callback));
+    }
+
+    public Subscription delete(String url,Map<String,Object> maps,BaseSubscriber<ResponseBody> subscriber){
+        return apiService.delete(url, maps).compose(schedulersTransformer).compose(handleErrorTransform()).subscribe(subscriber);
+    }
+
+    public <T> Subscription delete(String url,Map<String,Object> maps, CharonCallback<T> callback ){
+        return apiService.delete(url, maps).compose(schedulersTransformer).compose(handleErrorTransform()).subscribe(new CharonSubscriber(mContext,callback));
+    }
+
 
     final Observable.Transformer schedulersTransformer = new Observable.Transformer() {
         @Override
