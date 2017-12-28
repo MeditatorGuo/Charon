@@ -169,7 +169,7 @@ public final class Charon {
         return new Observable.Transformer<ApiResult<T>, T>() {
             @Override
             public Observable<T> call(Observable<ApiResult<T>> observable) {
-                return observable.onErrorResumeNext(new ApiErrFunc());
+                return observable.compose(schedulersTransformer).onErrorResumeNext(new ApiErrFunc<T>());
             }
         };
     }

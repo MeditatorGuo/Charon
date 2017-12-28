@@ -1,14 +1,14 @@
 package com.uowee.charon.mode;
 
 /**
- * Created by Sim.G on 2017/12/8.
+ * Created by GuoWee on 2017/12/8.
  */
 
 public class ApiResult<T> {
 
     private int code;
     private String msg;
-    private T result;
+    private T data;
 
     public int getCode() {
         return code;
@@ -26,12 +26,12 @@ public class ApiResult<T> {
         this.msg = msg;
     }
 
-    public T getResult() {
-        return result;
+    public T getData() {
+        return data;
     }
 
-    public void setResult(T result) {
-        this.result = result;
+    public void setData(T result) {
+        this.data = data;
     }
 
 
@@ -40,7 +40,7 @@ public class ApiResult<T> {
         return "ApiResult{" +
                 "code=" + code +
                 ", msg='" + msg + '\'' +
-                ", result=" + result +
+                ", data=" + data +
                 '}';
     }
 }
