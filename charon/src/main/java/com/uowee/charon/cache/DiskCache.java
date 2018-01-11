@@ -35,6 +35,7 @@ public class DiskCache implements ICache {
         this(context, getDiskCacheDir(context, Const.CACHE_DISK_DIR),
                 calculateDiskCacheSize(getDiskCacheDir(context, Const.CACHE_DISK_DIR)));
     }
+
     public DiskCache(Context context, File diskDir, long diskMaxSize) {
         compile = Pattern.compile(REGEX);
         try {
@@ -50,7 +51,7 @@ public class DiskCache implements ICache {
 
         String name = getMd5Key(key);
         try {
-            if (!TextUtils.isEmpty((String)get(name))) {
+            if (!TextUtils.isEmpty(get(name))) {
                 cache.remove(name);
             }
 
@@ -72,7 +73,7 @@ public class DiskCache implements ICache {
 
 
     @Override
-    public Object get(String key) {
+    public String get(String key) {
         try {
             String md5Key = getMd5Key(key);
             DiskLruCache.Snapshot snapshot = cache.get(md5Key);

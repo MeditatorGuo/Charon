@@ -39,6 +39,8 @@ public interface BaseApiService {
 
     @PUT()
     Observable<ResponseBody> put(@Url() String url, @QueryMap Map<String, Object> maps);
+
+
 }
 
 

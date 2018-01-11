@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.content.Context;
 
 import com.uowee.charon.api.BaseApiService;
+import com.uowee.charon.cache.CharonCache;
 import com.uowee.charon.callback.CharonCallback;
 import com.uowee.charon.func.ApiErrFunc;
 import com.uowee.charon.interceptor.GzipRequestInterceptor;
@@ -50,6 +51,7 @@ public final class Charon {
     private static Retrofit.Builder retrofitBuilder;
     private static OkHttpClient okHttpClient;
     private static OkHttpClient.Builder okHttpClientBuilder;
+    private static CharonCache  cache;
 
 
     private Charon() {
