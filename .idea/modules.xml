@@ -6,6 +6,7 @@
       <module fileurl="file://E:\AndroidStudioProjects\Charon\android-library.iml" filepath="E:\AndroidStudioProjects\Charon\android-library.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
       <module fileurl="file://$PROJECT_DIR$/charon/charon.iml" filepath="$PROJECT_DIR$/charon/charon.iml" />
+      <module fileurl="file://E:\AndroidStudioProjects\Charon\charon\charon.iml" filepath="E:\AndroidStudioProjects\Charon\charon\charon.iml" />
     </modules>
   </component>
 </project>
