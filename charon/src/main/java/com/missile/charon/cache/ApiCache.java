@@ -6,7 +6,9 @@ import android.util.Log;
 import java.io.File;
 
 import com.missile.charon.mode.CacheMode;
+import com.missile.charon.mode.CacheResult;
 import com.missile.charon.strategy.ICacheStrategy;
+
 import rx.Observable;
 import rx.Subscriber;
 import rx.Subscription;
@@ -55,6 +57,16 @@ public class ApiCache {
     private ApiCache(Context context, File diskDir, long diskMaxSize, String cacheKey, long time) {
         this.cacheKey = cacheKey;
         diskCache = new DiskCache(context, diskDir, diskMaxSize).setCacheTime(time);
+    }
+
+    public <T> Observable.Transformer<T, CacheResult<T>> transformer(CacheMode cacheMode, final Class<T> clazz) {
+        final ICacheStrategy strategy = loadStrategy(cacheMode);//获取缓存策略
+        return new Observable.Transformer<T, CacheResult<T>>() {
+            @Override
+            public Observable<CacheResult<T>> call(Observable<T> apiResultObservable) {
+                return strategy.execute(ApiCache.this, ApiCache.this.cacheKey, apiResultObservable, clazz);
+            }
+        };
     }
 
 

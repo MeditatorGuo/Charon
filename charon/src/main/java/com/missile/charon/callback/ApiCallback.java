@@ -6,7 +6,7 @@ import com.missile.charon.exception.ApiException;
  * Created by GuoWee on 2018/6/26.
  */
 
-public abstract class NovateCallback<T> {
+public abstract class ApiCallback<T> {
     public abstract void onStart();
 
     public abstract void onError(ApiException e);

@@ -2,18 +2,18 @@ package com.missile.charon.subscriber;
 
 import android.content.Context;
 
-import com.missile.charon.callback.NovateCallback;
+import com.missile.charon.callback.ApiCallback;
 import com.missile.charon.exception.ApiException;
 
 /**
  * Created by GuoWee on 2018/6/26.
  */
 
-public class NovateSubscriber<T> extends BaseSubscriber<T> {
+public class ApiSubscriber<T> extends BaseSubscriber<T> {
 
-    private NovateCallback<T> callback;
+    private ApiCallback<T> callback;
 
-    public NovateSubscriber(Context context, NovateCallback<T> callback) {
+    public ApiSubscriber(Context context, ApiCallback<T> callback) {
         super(context);
         if (callback == null) {
             throw new NullPointerException("this callback is null!");
