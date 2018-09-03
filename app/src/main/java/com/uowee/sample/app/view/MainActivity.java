@@ -59,7 +59,6 @@ public class MainActivity extends AppCompatActivity implements MovieContract.Vie
         mRecyclerView.setItemAnimator(new DefaultItemAnimator());
     }
 
-
     private void initAdapter() {
         mMovieAdapter = new MovieAdapter(R.layout.movie_item);
         mMovieAdapter.openAnimation(BaseQuickAdapter.SLIDEIN_LEFT);
