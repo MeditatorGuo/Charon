@@ -1,4 +1,4 @@
-package com.uowee.sample.app.model;
+package com.uowee.sample.app.domain.model;
 
 import java.util.List;
 
