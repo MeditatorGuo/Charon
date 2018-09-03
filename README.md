@@ -14,4 +14,4 @@
 
 Please refer to the Demo in the project.<br/>
 ScreenShots.<br/>
-![avatar](http://baidu.com/pic/doge.png)
+![avatar](https://github.com/guowee/Charon/blob/master/screenshots/demo-153112.png)
