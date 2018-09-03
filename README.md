@@ -11,4 +11,7 @@
    implementation 'com.google.code.gson:gson:2.7'
 ```
 2. Demo
-Please refer to the Demo in the project.
+
+Please refer to the Demo in the project.<br/>
+ScreenShots.<br/>
+![avatar](http://baidu.com/pic/doge.png)
