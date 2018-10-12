@@ -32,7 +32,9 @@ import javax.net.ssl.SSLSocketFactory;
 import okhttp3.Cache;
 import okhttp3.ConnectionPool;
 import okhttp3.Interceptor;
+import okhttp3.MultipartBody;
 import okhttp3.OkHttpClient;
+import okhttp3.RequestBody;
 import okhttp3.ResponseBody;
 import retrofit2.CallAdapter;
 import retrofit2.Converter;
@@ -212,6 +214,34 @@ public class Charon {
      */
     public <T> Subscription delete(String url, Map<String, Object> maps, ApiCallback<T> callback) {
         return this.delete(url, maps, ClassUtil.getTClass(callback)).subscribe(new ApiSubscriber(mContext, callback));
+    }
+
+    /**
+     * 上传文件
+     *
+     * @param url
+     * @param requestBody
+     * @param file
+     * @param callback
+     * @param <T>
+     * @return
+     */
+    public <T> Subscription uploadFile(String url, RequestBody requestBody, MultipartBody.Part file, ApiCallback<T> callback) {
+        return this.uploadFile(url, requestBody, file, ClassUtil.getTClass(callback)).subscribe(new ApiSubscriber(mContext, callback));
+    }
+
+    /**
+     * 上传文件
+     *
+     * @param url
+     * @param requestBody
+     * @param file
+     * @param clazz
+     * @param <T>
+     * @return
+     */
+    private <T> Observable<T> uploadFile(String url, RequestBody requestBody, MultipartBody.Part file, Class<T> clazz) {
+        return apiService.uploadFile(url, requestBody, file).compose(normalTransformer(clazz));
     }
 
 
